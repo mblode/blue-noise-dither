@@ -18,9 +18,7 @@ import { cn } from "@/lib/utils";
 export default function DitherPage() {
   const {
     uploadedImage,
-    ditheredBlob,
-    ditheredImageUrl,
-    ditheredDimensions,
+    ditheredImage,
     isProcessing,
     parameters,
     originalDimensions,
@@ -48,7 +46,7 @@ export default function DitherPage() {
   });
 
   const handleDownload = () => {
-    if (!ditheredBlob) {
+    if (!ditheredImage) {
       return;
     }
 
@@ -65,17 +63,35 @@ export default function DitherPage() {
       }
     }
 
-    const url = URL.createObjectURL(ditheredBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.click();
+    const canvas = document.createElement("canvas");
+    canvas.width = ditheredImage.width;
+    canvas.height = ditheredImage.height;
 
-    URL.revokeObjectURL(url);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return;
+    }
 
-    // Show success feedback
-    setDownloadSuccess(true);
-    setTimeout(() => setDownloadSuccess(false), 2000);
+    ctx.putImageData(ditheredImage, 0, 0);
+
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+
+
+      URL.revokeObjectURL(url);
+
+      // Show success feedback
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 2000);
+    }, "image/png");
   };
 
   return (
@@ -105,7 +121,7 @@ export default function DitherPage() {
             <ArrowUpCircleIcon className="h-4 w-4" />
             {uploadedImage ? "Upload new" : "Upload"}
           </Button>
-          {ditheredBlob && (
+          {ditheredImage && (
             <Button
               aria-label="Download dithered image"
               className={cn(downloadSuccess && "scale-110")}
@@ -125,7 +141,7 @@ export default function DitherPage() {
             <ArrowUpCircleIcon className="size-4" />
             {uploadedImage ? "Upload new" : "Upload"}
           </Button>
-          {ditheredBlob && (
+          {ditheredImage && (
             <Button
               className={cn(downloadSuccess && "scale-110")}
               onClick={handleDownload}
@@ -171,8 +187,7 @@ export default function DitherPage() {
                 Blue Noise Dither - Professional Image Dithering Tool
               </h1>
               <CanvasPreview
-                ditheredDimensions={ditheredDimensions}
-                ditheredImageUrl={ditheredImageUrl}
+                ditheredImage={ditheredImage}
                 isProcessing={isProcessing}
                 onBrowse={open}
                 uploadedImage={uploadedImage}
