@@ -25,6 +25,26 @@ interface DitherWorkerResponse {
 
 const noiseCache = new Map<number, NoiseTexture>();
 
+const dataUrlToBlob = (dataUrl: string): Blob => {
+  const commaIndex = dataUrl.indexOf(",");
+  if (commaIndex === -1) {
+    throw new Error("Invalid data URL");
+  }
+
+  const header = dataUrl.slice(0, commaIndex);
+  const base64 = dataUrl.slice(commaIndex + 1);
+  const mimeMatch = /data:(.*?);base64/i.exec(header);
+  const mimeType = mimeMatch?.[1] ?? "application/octet-stream";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return new Blob([bytes], { type: mimeType });
+};
+
 const loadNoiseTexture = async (size: number): Promise<NoiseTexture> => {
   const cached = noiseCache.get(size);
   if (cached) {
@@ -36,8 +56,7 @@ const loadNoiseTexture = async (size: number): Promise<NoiseTexture> => {
     throw new Error("Noise texture not found");
   }
 
-  const response = await fetch(config.dataUrl);
-  const blob = await response.blob();
+  const blob = dataUrlToBlob(config.dataUrl);
   const bitmap = await createImageBitmap(blob);
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
