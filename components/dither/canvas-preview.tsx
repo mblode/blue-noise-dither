@@ -1,7 +1,7 @@
 "use client";
 
 import { Images1Icon } from "@fingertip/icons";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { ImageComparison } from "@/components/ui/image-comparison";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -18,6 +18,10 @@ export function CanvasPreview({
   isProcessing,
   onBrowse,
 }: CanvasPreviewProps) {
+  const handleBrowseClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onBrowse?.();
+  };
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ditheredImageUrl, setDitheredImageUrl] = useState<string | null>(null);
   const comparisonDimensions = ditheredImage
@@ -83,7 +87,7 @@ export function CanvasPreview({
           {onBrowse && (
             <button
               className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-input bg-background px-4 font-medium text-sm shadow-xs transition-[color,box-shadow] hover:bg-accent hover:text-accent-foreground focus-visible:outline-hidden focus-visible:ring-[3px] focus-visible:ring-ring/50"
-              onClick={onBrowse}
+              onClick={handleBrowseClick}
               type="button"
             >
               Browse
