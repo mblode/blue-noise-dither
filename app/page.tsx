@@ -85,7 +85,6 @@ export default function DitherPage() {
       link.download = filename;
       link.click();
 
-
       URL.revokeObjectURL(url);
 
       // Show success feedback
